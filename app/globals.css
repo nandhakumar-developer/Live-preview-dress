@@ -222,19 +222,12 @@ body {
   animation: shimmer 1.4s infinite linear;
 }
 
-@keyframes preview-ambient-glow {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(130, 35, 56, 0.16), 0 0 32px rgba(130, 35, 56, 0.08), var(--shadow-xl);
-    border-color: rgba(130, 35, 56, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 24px rgba(130, 35, 56, 0.34), 0 0 64px rgba(130, 35, 56, 0.16), var(--shadow-xl);
-    border-color: rgba(130, 35, 56, 0.72);
-  }
-}
-
-.preview-ambient-glow {
-  animation: preview-ambient-glow 6s ease-in-out infinite;
+.preview-border-glow {
+  border: 5px solid #e3708a;
+  box-shadow:
+    0 0 8px 1px rgba(130, 35, 56, 0.45),
+    0 0 20px 4px rgba(130, 35, 56, 0.2),
+    var(--shadow-xl);
 }
 
 .product-gallery-grid {
@@ -268,13 +261,6 @@ body {
 
   .product-gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .preview-ambient-glow {
-    animation: none;
-    box-shadow: 0 0 18px rgba(130, 35, 56, 0.2), var(--shadow-xl);
   }
 }
 

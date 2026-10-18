@@ -52,11 +52,10 @@ export function CameraPreview({
 }: CameraPreviewProps) {
   return (
     <div
-      className="preview-ambient-glow relative w-full h-full rounded-3xl overflow-hidden flex items-center justify-center"
+      className={`${isFullscreen ? '' : 'preview-border-glow'} relative w-full h-full rounded-3xl overflow-hidden flex items-center justify-center`}
       style={{
         background: '#18151A',
-        border: '1px solid rgba(130,35,56,0.5)',
-        boxShadow: 'var(--shadow-xl)',
+        border: isFullscreen ? 'none' : undefined,
         height: isFullscreen ? '100dvh' : 'clamp(460px, 76dvh, 1200px)',
         borderRadius: isFullscreen ? 0 : undefined,
       }}
