@@ -12,6 +12,7 @@ import { SessionTimer } from './SessionTimer';
 import { TryOnControls } from './TryOnControls';
 import { GarmentLightboxModal } from './GarmentLightboxModal';
 import { RecordedVideoModal } from './RecordedVideoModal';
+import { FullscreenDressPicker } from './FullscreenDressPicker';
 import {
   AlertCircle,
   Crown,
@@ -35,6 +36,7 @@ export function MirrorFitShell({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [isMirrorFullscreen, setIsMirrorFullscreen] = useState<boolean>(false);
+  const [isDressPickerOpen, setIsDressPickerOpen] = useState<boolean>(false);
   const [fullscreenError, setFullscreenError] = useState<string | null>(null);
   const [lightboxProduct, setLightboxProduct] = useState<Product | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
@@ -129,7 +131,9 @@ export function MirrorFitShell({
 
   useEffect(() => {
     const syncFullscreenState = () => {
-      setIsMirrorFullscreen(document.fullscreenElement === mirrorStageRef.current);
+      const isFullscreen = document.fullscreenElement === mirrorStageRef.current;
+      setIsMirrorFullscreen(isFullscreen);
+      if (!isFullscreen) setIsDressPickerOpen(false);
     };
 
     document.addEventListener('fullscreenchange', syncFullscreenState);
@@ -309,7 +313,7 @@ export function MirrorFitShell({
       {/* ── Main Stage ── */}
       <main
         ref={mirrorStageRef}
-        className="flex-1 w-full"
+        className="relative flex-1 w-full"
         style={{
           maxWidth: isMirrorFullscreen ? '100%' : '1800px',
           width: isMirrorFullscreen ? '100vw' : undefined,
@@ -333,7 +337,24 @@ export function MirrorFitShell({
           onEndSession={handleUserEndSession}
           isFullscreen={isMirrorFullscreen}
           onToggleFullscreen={handleToggleFullscreen}
+          isDressPickerOpen={isDressPickerOpen}
+          onToggleDressPicker={() => setIsDressPickerOpen((open) => !open)}
         />
+        {isMirrorFullscreen && isDressPickerOpen && (
+          <FullscreenDressPicker
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            onSelectCategory={handleSelectCategory}
+            products={products}
+            selectedProduct={selectedProduct}
+            onSelectProduct={handleProductSelect}
+            page={currentPage}
+            totalPages={totalPages}
+            onPrevPage={handlePrevPage}
+            onNextPage={handleNextPage}
+            onClose={() => setIsDressPickerOpen(false)}
+          />
+        )}
       </main>
 
       {/* ── Bottom Controls & Gallery ── */}

@@ -12,6 +12,7 @@ import {
   Maximize,
   Minimize,
   LogOut,
+  Shirt,
 } from 'lucide-react';
 
 interface CameraPreviewProps {
@@ -28,6 +29,8 @@ interface CameraPreviewProps {
   onEndSession: () => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  isDressPickerOpen?: boolean;
+  onToggleDressPicker?: () => void;
 }
 
 export function CameraPreview({
@@ -44,6 +47,8 @@ export function CameraPreview({
   onEndSession,
   isFullscreen,
   onToggleFullscreen,
+  isDressPickerOpen,
+  onToggleDressPicker,
 }: CameraPreviewProps) {
   return (
     <div
@@ -150,7 +155,7 @@ export function CameraPreview({
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(74, 222, 128, 0.3)',
             color: '#bbf7d0',
-            zIndex: 20,
+            zIndex: 40,
           }}
         >
           <span
@@ -165,7 +170,7 @@ export function CameraPreview({
       {/* ── Floating Controls Toolbar (top-right) ── */}
       {onToggleFullscreen && (
         <div
-          className="absolute top-5 right-5 flex items-center gap-1.5 p-1.5 rounded-2xl"
+          className="absolute right-3 top-3 flex max-w-[calc(100%_-_1.5rem)] flex-wrap items-center justify-end gap-1 p-1.5 rounded-2xl sm:right-5 sm:top-5 sm:gap-1.5"
           style={{
             background: 'rgba(255,255,255,0.9)',
             backdropFilter: 'blur(16px)',
@@ -235,7 +240,24 @@ export function CameraPreview({
               }}
             >
               <LogOut className="w-4 h-4" />
-              <span>End Session</span>
+              <span className="hidden sm:inline">End Session</span>
+            </button>
+          )}
+
+          {isFullscreen && onToggleDressPicker && (
+            <button
+              type="button"
+              onClick={onToggleDressPicker}
+              title={isDressPickerOpen ? 'Close garment picker' : 'Browse garments'}
+              aria-label={isDressPickerOpen ? 'Close garment picker' : 'Browse garments'}
+              aria-expanded={!!isDressPickerOpen}
+              className="touch-target flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{
+                background: isDressPickerOpen ? 'var(--accent)' : 'transparent',
+                color: isDressPickerOpen ? '#fff' : 'var(--text-secondary)',
+              }}
+            >
+              <Shirt className="h-5 w-5" />
             </button>
           )}
 
@@ -243,7 +265,7 @@ export function CameraPreview({
             type="button"
             onClick={onToggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Mirror'}
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            className="touch-target flex h-10 w-10 items-center justify-center rounded-xl"
             style={{
               color: 'var(--text-secondary)',
               transition: 'all 0.2s ease',
