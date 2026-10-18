@@ -155,7 +155,7 @@ export function CameraPreview({
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(74, 222, 128, 0.3)',
             color: '#bbf7d0',
-            zIndex: 40,
+            zIndex: 20,
           }}
         >
           <span
@@ -176,7 +176,7 @@ export function CameraPreview({
             backdropFilter: 'blur(16px)',
             border: '1px solid rgba(228,221,212,0.7)',
             boxShadow: 'var(--shadow-md)',
-            zIndex: 20,
+            zIndex: 40,
           }}
         >
           {hasCameraStream && [
