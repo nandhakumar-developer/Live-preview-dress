@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import { Category } from '@/types/database';
 import {
   createCategoryAction,
@@ -15,15 +14,9 @@ interface CategoryManagerProps {
 }
 
 export function CategoryManager({ initialCategories }: CategoryManagerProps) {
-  const router = useRouter();
-
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setCategories(initialCategories);
-  }, [initialCategories]);
 
   // New category state
   const [isAdding, setIsAdding] = useState(false);
@@ -61,12 +54,13 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       });
 
       if (res.category) {
-        setCategories((prev) => [...prev, res.category as Category]);
+        setCategories((prev) =>
+          [...prev, res.category as Category].sort((left, right) => left.sort_order - right.sort_order)
+        );
       }
       setIsAdding(false);
       setNewName('');
       setNewSlug('');
-      router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create category.');
     } finally {
@@ -90,7 +84,6 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         sort_order: cat.sort_order,
         is_active: newActive,
       });
-      router.refresh();
     } catch (err) {
       // Revert on failure
       setCategories((prev) =>
@@ -109,7 +102,6 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     try {
       await deleteCategoryAction(id);
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      router.refresh();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to delete category.');
     } finally {

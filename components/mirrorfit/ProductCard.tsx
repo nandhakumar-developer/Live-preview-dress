@@ -11,7 +11,7 @@ interface ProductCardProps {
   onInspect?: (product: Product) => void;
 }
 
-export function ProductCard({
+export const ProductCard = React.memo(function ProductCard({
   product,
   isSelected,
   onSelect,
@@ -197,4 +197,4 @@ export function ProductCard({
       </div>
     </div>
   );
-}
+});

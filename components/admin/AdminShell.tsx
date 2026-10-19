@@ -25,6 +25,10 @@ export function AdminShell({ children }: AdminShellProps) {
     { label: 'MirrorFit Settings', href: '/admin/settings', icon: Settings },
   ];
 
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#1A1816] flex flex-col md:flex-row">
       {/* Sidebar Navigation */}

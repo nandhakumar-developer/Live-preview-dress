@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { AdminShell } from '@/components/admin/AdminShell';
 import { getAdminProducts, getAllCategories, getMirrorFitSettings } from '@/lib/products/queries';
 import { requireAdminSession } from '@/lib/auth/admin';
 import {
@@ -14,8 +13,6 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-export const revalidate = 0;
-
 export default async function AdminOverviewPage() {
   await requireAdminSession();
   const [products, categories, settings] = await Promise.all([
@@ -28,8 +25,7 @@ export default async function AdminOverviewPage() {
   const featuredCount = products.filter((p) => p.is_featured).length;
 
   return (
-    <AdminShell>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -166,7 +162,6 @@ export default async function AdminOverviewPage() {
             </p>
           </Link>
         </div>
-      </div>
-    </AdminShell>
+    </div>
   );
 }

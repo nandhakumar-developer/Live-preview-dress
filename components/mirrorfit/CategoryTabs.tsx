@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Category } from '@/types/database';
 
 interface CategoryTabsProps {
@@ -9,15 +9,15 @@ interface CategoryTabsProps {
   onSelectCategory: (id: string) => void;
 }
 
-export function CategoryTabs({
+export const CategoryTabs = memo(function CategoryTabs({
   categories,
   selectedCategoryId,
   onSelectCategory,
 }: CategoryTabsProps) {
-  const allTabs = [
+  const allTabs = useMemo(() => [
     { id: 'all', name: 'All Collections' },
     ...categories,
-  ];
+  ], [categories]);
 
   return (
     <div
@@ -59,4 +59,4 @@ export function CategoryTabs({
       })}
     </div>
   );
-}
+});

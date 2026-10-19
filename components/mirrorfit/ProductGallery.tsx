@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Product } from '@/types/database';
 import { ProductCard } from './ProductCard';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
@@ -16,7 +16,7 @@ interface ProductGalleryProps {
   onNextPage: () => void;
 }
 
-export function ProductGallery({
+export const ProductGallery = memo(function ProductGallery({
   products,
   selectedProduct,
   onSelectProduct,
@@ -26,7 +26,7 @@ export function ProductGallery({
   onPrevPage,
   onNextPage,
 }: ProductGalleryProps) {
-  const displayedProducts = products.slice(0, 5);
+  const displayedProducts = useMemo(() => products.slice(0, 5), [products]);
 
   return (
     <div id="product-gallery" className="w-full space-y-3">
@@ -117,4 +117,4 @@ export function ProductGallery({
       </div>
     </div>
   );
-}
+});

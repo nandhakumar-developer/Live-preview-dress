@@ -8,6 +8,7 @@ MirrorFit is a touchscreen-friendly virtual dressing room for a boutique. Custom
 - **Try-on:** The browser requests camera access. When Decart is configured, the app connects to its real-time AI stream; without a working Decart key, the app stays in demo mode and shows the local camera feed.
 - **Administration:** `/admin` contains the overview, catalogue, category, and MirrorFit settings screens.
 - **Data:** Supabase provides PostgreSQL, authentication/storage libraries, and garment image storage. Sample categories and settings are used if reads fail; the local sample product list is empty.
+- **Navigation and rendering:** The admin navigation shell persists between admin pages, while Next.js prefetches linked routes. MirrorFit caches recently viewed category pages in memory and memoizes stable product UI to avoid unnecessary renders.
 - **Runtime:** Next.js App Router application, run with Node.js 20+ and npm.
 
 ## How the app works

@@ -2,9 +2,6 @@ import { createClient } from '@/lib/supabase/server';
 import { Category, Product, MirrorFitSettings } from '@/types/database';
 import { SAMPLE_CATEGORIES, SAMPLE_PRODUCTS, DEFAULT_MIRRORFIT_SETTINGS } from './sample-data';
 
-/**
- * Fetch active categories for the MirrorFit customer experience
- */
 export async function getActiveCategories(): Promise<Category[]> {
   try {
     const supabase = await createClient();
@@ -25,16 +22,13 @@ export async function getActiveCategories(): Promise<Category[]> {
   }
 }
 
-/**
- * Fetch published products for the customer experience (strictly capped to max 5 per page)
- */
 export async function getMirrorFitProducts(options?: {
   categoryId?: string;
   page?: number;
   pageSize?: number;
 }): Promise<{ products: Product[]; total: number; page: number; totalPages: number }> {
   const page = options?.page || 1;
-  const pageSize = options?.pageSize ? Math.min(options.pageSize, 5) : 5; // strictly max 5 cards per requirement
+  const pageSize = options?.pageSize ? Math.min(options.pageSize, 5) : 5;
   const categoryId = options?.categoryId;
 
   try {
@@ -57,15 +51,14 @@ export async function getMirrorFitProducts(options?: {
     const { data, count, error } = await query;
 
     if (error || !data || data.length === 0) {
-      // Fallback to sample dresses
       let filtered = [...SAMPLE_PRODUCTS];
       if (categoryId && categoryId !== 'all') {
-        filtered = filtered.filter((p) => p.category_id === categoryId);
+        filtered = filtered.filter((product) => product.category_id === categoryId);
       }
       const total = filtered.length;
-      const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+      const products = filtered.slice((page - 1) * pageSize, page * pageSize);
       return {
-        products: paginated,
+        products,
         total,
         page,
         totalPages: Math.max(1, Math.ceil(total / pageSize)),
@@ -83,12 +76,12 @@ export async function getMirrorFitProducts(options?: {
     console.warn('Error fetching MirrorFit products, using sample data:', err);
     let filtered = [...SAMPLE_PRODUCTS];
     if (categoryId && categoryId !== 'all') {
-      filtered = filtered.filter((p) => p.category_id === categoryId);
+      filtered = filtered.filter((product) => product.category_id === categoryId);
     }
     const total = filtered.length;
-    const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+    const products = filtered.slice((page - 1) * pageSize, page * pageSize);
     return {
-      products: paginated,
+      products,
       total,
       page,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
@@ -96,9 +89,6 @@ export async function getMirrorFitProducts(options?: {
   }
 }
 
-/**
- * Fetch all products for admin dashboard (supports search, category filter, published filter)
- */
 export async function getAdminProducts(filters?: {
   search?: string;
   categoryId?: string;
@@ -124,11 +114,7 @@ export async function getAdminProducts(filters?: {
     }
 
     const { data, error } = await query;
-
-    if (error || !data) {
-      return SAMPLE_PRODUCTS;
-    }
-
+    if (error || !data) return SAMPLE_PRODUCTS;
     return data as Product[];
   } catch (err) {
     console.warn('Error fetching admin products:', err);
@@ -136,9 +122,6 @@ export async function getAdminProducts(filters?: {
   }
 }
 
-/**
- * Fetch single product by ID
- */
 export async function getProductById(id: string): Promise<Product | null> {
   try {
     const supabase = await createClient();
@@ -149,20 +132,15 @@ export async function getProductById(id: string): Promise<Product | null> {
       .maybeSingle();
 
     if (error || !data) {
-      const found = SAMPLE_PRODUCTS.find((p) => p.id === id);
-      return found || null;
+      return SAMPLE_PRODUCTS.find((product) => product.id === id) || null;
     }
-
     return data as Product;
   } catch (err) {
     console.warn('Error fetching product by ID:', err);
-    return SAMPLE_PRODUCTS.find((p) => p.id === id) || null;
+    return SAMPLE_PRODUCTS.find((product) => product.id === id) || null;
   }
 }
 
-/**
- * Fetch all categories for admin (including inactive)
- */
 export async function getAllCategories(): Promise<Category[]> {
   try {
     const supabase = await createClient();
@@ -171,10 +149,7 @@ export async function getAllCategories(): Promise<Category[]> {
       .select('*')
       .order('sort_order', { ascending: true });
 
-    if (error || !data || data.length === 0) {
-      return SAMPLE_CATEGORIES;
-    }
-
+    if (error || !data || data.length === 0) return SAMPLE_CATEGORIES;
     return data as Category[];
   } catch (err) {
     console.warn('Error fetching all categories:', err);
@@ -182,9 +157,6 @@ export async function getAllCategories(): Promise<Category[]> {
   }
 }
 
-/**
- * Fetch MirrorFit settings
- */
 export async function getMirrorFitSettings(): Promise<MirrorFitSettings> {
   try {
     const supabase = await createClient();
@@ -194,10 +166,7 @@ export async function getMirrorFitSettings(): Promise<MirrorFitSettings> {
       .limit(1)
       .maybeSingle();
 
-    if (error || !data) {
-      return DEFAULT_MIRRORFIT_SETTINGS;
-    }
-
+    if (error || !data) return DEFAULT_MIRRORFIT_SETTINGS;
     return data as MirrorFitSettings;
   } catch {
     return DEFAULT_MIRRORFIT_SETTINGS;

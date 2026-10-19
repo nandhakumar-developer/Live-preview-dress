@@ -22,19 +22,47 @@ import {
 interface MirrorFitShellProps {
   initialCategories: Category[];
   initialProducts: Product[];
+  initialTotalPages: number;
   initialSettings: MirrorFitSettings;
 }
 
 export function MirrorFitShell({
   initialCategories,
   initialProducts,
+  initialTotalPages,
   initialSettings,
 }: MirrorFitShellProps) {
   const [categories] = useState<Category[]>(initialCategories);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(initialTotalPages);
+  const [productLoadError, setProductLoadError] = useState<string | null>(null);
+  const productPageCache = useRef(new Map<string, {
+    products: Product[];
+    totalPages: number;
+    page: number;
+    expiresAt: number;
+  }>([['all:1', {
+    products: initialProducts,
+    totalPages: initialTotalPages,
+    page: 1,
+    expiresAt: 0,
+  }]]));
+  const cacheProductPage = useCallback((key: string, value: {
+    products: Product[];
+    totalPages: number;
+    page: number;
+    expiresAt: number;
+  }) => {
+    productPageCache.current.delete(key);
+    productPageCache.current.set(key, value);
+    if (productPageCache.current.size > 20) {
+      const oldestKey = productPageCache.current.keys().next().value;
+      if (oldestKey !== undefined) productPageCache.current.delete(oldestKey);
+    }
+  }, []);
+  const requestIdRef = useRef(0);
   const [isMirrorFullscreen, setIsMirrorFullscreen] = useState<boolean>(false);
   const [isDressPickerOpen, setIsDressPickerOpen] = useState<boolean>(false);
   const [fullscreenError, setFullscreenError] = useState<string | null>(null);
@@ -147,45 +175,71 @@ export function MirrorFitShell({
   }, [tryOnState, isSessionActive, startSession]);
 
   const fetchProducts = useCallback(async (catId: string, page: number) => {
+    const requestId = ++requestIdRef.current;
+    const cacheKey = `${catId}:${page}`;
+    const cached = productPageCache.current.get(cacheKey);
+    if (cached && (cached.expiresAt === 0 || cached.expiresAt > Date.now())) {
+      if (cached.expiresAt === 0) cached.expiresAt = Date.now() + 30_000;
+      setProducts(cached.products);
+      setTotalPages(cached.totalPages);
+      setCurrentPage(cached.page);
+      setProductLoadError(null);
+      return;
+    }
+    productPageCache.current.delete(cacheKey);
+
+    setProductLoadError(null);
     const url = `/api/products?categoryId=${encodeURIComponent(catId)}&page=${page}&pageSize=5`;
-    const res = await fetch(url);
-    if (res.ok) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Product request failed (${res.status})`);
       const data = await res.json();
+      cacheProductPage(cacheKey, {
+        products: data.products,
+        totalPages: data.totalPages,
+        page: data.page,
+        expiresAt: Date.now() + 30_000,
+      });
+      if (requestId !== requestIdRef.current) return;
       setProducts(data.products);
       setTotalPages(data.totalPages);
       setCurrentPage(data.page);
+      setProductLoadError(null);
+    } catch (error) {
+      if (requestId !== requestIdRef.current) return;
+      console.error('Unable to load MirrorFit products:', error);
+      setProductLoadError('Unable to load garments. Please try selecting the category again.');
     }
-  }, []);
+  }, [cacheProductPage]);
 
-  const handleSelectCategory = (catId: string) => {
+  const handleSelectCategory = useCallback((catId: string) => {
+    if (selectedCategoryId === catId) return;
     setSelectedCategoryId(catId);
     setCurrentPage(1);
     fetchProducts(catId, 1);
     resetIdleTimer();
-  };
+  }, [fetchProducts, resetIdleTimer, selectedCategoryId]);
 
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (currentPage > 1) {
       const prev = currentPage - 1;
-      setCurrentPage(prev);
       fetchProducts(selectedCategoryId, prev);
       resetIdleTimer();
     }
-  };
+  }, [currentPage, fetchProducts, resetIdleTimer, selectedCategoryId]);
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       const next = currentPage + 1;
-      setCurrentPage(next);
       fetchProducts(selectedCategoryId, next);
       resetIdleTimer();
     }
-  };
+  }, [currentPage, fetchProducts, resetIdleTimer, selectedCategoryId, totalPages]);
 
-  const handleProductSelect = async (product: Product) => {
+  const handleProductSelect = useCallback(async (product: Product) => {
     resetIdleTimer();
     await selectProduct(product);
-  };
+  }, [resetIdleTimer, selectProduct]);
 
   const handleChangeOutfit = () => {
     document.getElementById('product-gallery')?.scrollIntoView({
@@ -214,11 +268,11 @@ export function MirrorFitShell({
     }
   }, []);
 
-  const handleInspectProduct = (product: Product) => {
+  const handleInspectProduct = useCallback((product: Product) => {
     resetIdleTimer();
     setLightboxProduct(product);
     setIsLightboxOpen(true);
-  };
+  }, [resetIdleTimer]);
 
   const hasCamera = !!cameraStream;
 
@@ -380,6 +434,11 @@ export function MirrorFitShell({
         </div>
 
         {/* Product Gallery */}
+        {productLoadError && (
+          <p role="alert" className="text-sm text-red-700">
+            {productLoadError}
+          </p>
+        )}
         <ProductGallery
           products={products}
           selectedProduct={selectedProduct}

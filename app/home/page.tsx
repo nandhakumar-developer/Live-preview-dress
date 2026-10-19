@@ -20,6 +20,7 @@ export default async function HomePage() {
     <MirrorFitShell
       initialCategories={categories}
       initialProducts={productData.products}
+      initialTotalPages={productData.totalPages}
       initialSettings={settings}
     />
   );
